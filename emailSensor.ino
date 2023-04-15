@@ -11,9 +11,7 @@
 #define PIN_BUZZER D4
 #define PIN_ALTO D2
 #define PIN_SENSOR D3
-// Configurações da rede WiFi à se conectar
-//#define WIFI_SSID "NOME DA REDE"
-//#define WIFI_PASSWORD "SENHA DA REDE"
+
 // Configurações do SMTP host
 #define SMTP_HOST "smtp.gmail.com" // SMTP host
 #define SMTP_PORT esp_mail_smtp_port_587
@@ -41,67 +39,43 @@ bool enviaEmail_TXT(String nomeRemetente,
                     String emailDestinatario,
                     String messageTXT,
                     String stmpHost,
-                    int stmpPort); // Função de envio de e-mail
+                    int stmpPort); 
 void setup() {
   // Inicia Serial
   Serial.begin(115200);
 
   //WiFiManager
-    //Local intialization. Once its business is done, there is no need to keep it around
-    WiFiManager wifiManager;
-    //reset saved settings
-    //wifiManager.resetSettings();
+  WiFiManager wifiManager;     
     
-    //set custom ip for portal
-    //wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
-    //fetches ssid and pass from eeprom and tries to connect
-    //if it does not connect it starts an access point with the specified name
-    //here  "AutoConnectAP"
-    //and goes into a blocking loop awaiting configuration
-    wifiManager.autoConnect("AutoConnectAP");
-    //or use this for auto generated name ESP + ChipID
-    //wifiManager.autoConnect();
-
-    
-    //if you get here you have connected to the WiFi
-    Serial.println("connected...yeey :)");
+  wifiManager.autoConnect("AutoConnectAP");
+     
+  Serial.println("connected...yeey :)");
  
   Serial.println();
-  delay(1000);
-  pinMode(PIN_BUZZER, OUTPUT);
-  digitalWrite(PIN_BUZZER, HIGH);
-  delay(100);
-  digitalWrite(PIN_BUZZER, LOW);
-  pinMode(PIN_ALTO, OUTPUT);
-  digitalWrite(PIN_ALTO, HIGH);
-  pinMode(PIN_SENSOR, INPUT_PULLUP);
   
-//  Inicia conexão WiFi
-//  Serial.println("Conectando à rede WiFi");
-//  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-//  while (WiFi.status() != WL_CONNECTED) // Enquanto o status de conexão ao WiFi
-    //                                      não for bem sucedido, ...
-  //{
-    //Serial.print(".");
-    //delay(200);
-  //}
-  // Mostra na Serial que a conexão está realizada
-  //Serial.println("\nWiFi conectado.");
- // Serial.println();
- // digitalWrite(PIN_BUZZER, HIGH);
- // delay(1000);
- // digitalWrite(PIN_BUZZER, LOW);
-  // Habilita a depuração via porta serial:
-  //    0: nenhuma depuração
-  //    1: deburação básica
+  delay(1000);
+  
+  pinMode(PIN_BUZZER, OUTPUT);
+  
+  digitalWrite(PIN_BUZZER, HIGH);
+  
+  delay(100);
+  
+  digitalWrite(PIN_BUZZER, LOW);
+  
+  pinMode(PIN_ALTO, OUTPUT);
+  
+  digitalWrite(PIN_ALTO, HIGH);
+  
+  pinMode(PIN_SENSOR, INPUT_PULLUP);   
+
   smtp.debug(0);
-  // Define a função de retorno de chamada para obter os resultados de envio
+  
   smtp.callback(smtpCallback);
 }
 void loop(){
     val = digitalRead(PIN_SENSOR);
-    if (val==LOW){          
+    if (val==HIGH){          
       permiteEnvioEmail == true;       
         enviaEmail_TXT("ESP32 Alarme de Porta",
                        AUTOR_EMAIL,
@@ -111,14 +85,14 @@ void loop(){
                        DESTINATARIO_EMAIL,
                        "Foi detectado a abertura da porta",
                        SMTP_HOST,
-                       SMTP_PORT); // envia o e-mail com os dados em parâmetros
+                       SMTP_PORT); 
         permiteEnvioEmail = false; // não deixa enviar e-mail
       
-    } else // se não, ...
+    } else 
     {
-      permiteEnvioEmail = false; // deixa enviar e-mail
+      permiteEnvioEmail = false; 
     }
-    delay(100); // pausa de 0,1 segundos
+    delay(100); 
   }
 
 bool enviaEmail_TXT(String nomeRemetente,
@@ -139,8 +113,7 @@ bool enviaEmail_TXT(String nomeRemetente,
   session.login.password = senhaRemetente;
   session.login.user_domain = "";
   // Defina o tempo de configuração do NTP
-  session.time.ntp_server = F("time.google.com"); // Utilizado o NTP do Google:
-  //                                         https://developers.google.com/time
+  session.time.ntp_server = F("time.google.com"); 
   session.time.gmt_offset = -3;
   session.time.day_light_offset = 0;
   // Instanciação do objeto da classe de mensagem
@@ -151,32 +124,13 @@ bool enviaEmail_TXT(String nomeRemetente,
   message.subject = assunto;
   message.addRecipient(nomeDestinatario, emailDestinatario);
   message.text.content = messageTXT.c_str();
-  // O conjunto de caracteres de mensagem de texto html, por exemplo:
-  //  us-ascii
-  //  utf-8
-  //  utf-7
-  // O valor padrão é utf-8
+ 
   message.text.charSet = "utf-8";
-  // A codificação de transferência de conteúdo. Ex:
-  //  enc_7bit ou "7bit" (não codificado)
-  //  enc_qp ou "quoted-printable" (codificado)
-  //  enc_base64 ou "base64" (codificado)
-  //  enc_binary ou "binary" (não codificado)
-  //  enc_8bit ou "8bit" (não codificado)
-  //  O valor padrão é "7bit"
+  
   message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
-  // A prioridade da mensagem:
-  //  esp_mail_smtp_priority_high ou 1
-  //  esp_mail_smtp_priority_normal ou 3
-  //  esp_mail_smtp_priority_low ou 5
-  //  O valor padrão é esp_mail_smtp_priority_low
+  
   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
-  // As notificações de status de entrega, Ex:
-  //  esp_mail_smtp_notify_never
-  //  esp_mail_smtp_notify_success
-  //  esp_mail_smtp_notify_failure
-  //  esp_mail_smtp_notify_delay
-  //  O valor padrão é esp_mail_smtp_notify_never
+  
   message.response.notify = esp_mail_smtp_notify_success |
                             esp_mail_smtp_notify_failure |
                             esp_mail_smtp_notify_delay;
